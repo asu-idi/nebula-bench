@@ -6,7 +6,7 @@ config_file = '/usr/local/nebula/etc/nebula-storaged.conf'
 rocksdb_block_cache_prefix = '--rocksdb_block_cache='
 enable_storage_cache_prefix = '--enable_storage_cache='
 storage_cache_capacity_prefix = '--storage_cache_capacity='
-enable_vertex_pool_prefix = '--enable_vertex_pool'
+enable_vertex_pool_prefix = '--enable_vertex_pool='
 vertex_pool_capacity_prefix = '--vertex_pool_capacity='
 
 result_output = "research_output.txt"
@@ -29,7 +29,8 @@ def start_bench():
 def read_output_file(output_file):
     with open(output_file, 'r') as load_f:
         result = json.load(load_f)
-        result_file.write(str(result['metrics']['latency']['avg']) + "\n")
+        result_file.write(str(result['metrics']['latency']) + "\n")
+        result_file.flush()
 
 
 def change_config(rocksdb_block_cache, storage_cache_capacity, vertex_pool_capacity):
