@@ -49,13 +49,13 @@ def change_config(rocksdb_block_cache, storage_cache_capacity, vertex_pool_capac
         elif arr[index].startswith(vertex_pool_capacity_prefix):
             arr[index] = vertex_pool_capacity_prefix + str(vertex_pool_capacity)
         elif arr[index].startswith(enable_vertex_pool_prefix):
-            if vertex_pool_capacity_prefix == 0:
+            if vertex_pool_capacity == 0:
                 arr[index] = enable_vertex_pool_prefix + "false"
             else:
                 arr[index] = enable_vertex_pool_prefix + "true"
 
         elif arr[index].startswith(enable_storage_cache_prefix):
-            if vertex_pool_capacity_prefix == 0:
+            if vertex_pool_capacity == 0:
                 arr[index] = enable_storage_cache_prefix + "false"
             else:
                 arr[index] = enable_storage_cache_prefix + "true"
