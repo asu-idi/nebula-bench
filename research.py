@@ -11,9 +11,11 @@ vertex_pool_capacity_prefix = '--vertex_pool_capacity='
 
 result_output = "research_output.txt"
 
-Go1Step_output = "output/result_Go1Step.json"
+fetch1Step_output = "output/result_Fetch1Step.json"
 result_file = open(result_output, mode='w', encoding='utf-8')
 
+def clear_memory():
+    
 
 def init():
     os.system('ulimit -n 130000')
@@ -22,7 +24,7 @@ def init():
 def start_bench():
     os.system('/usr/local/nebula/scripts/nebula.service start all')
     time.sleep(5)
-    os.system('python3 run.py stress run -scenario go.Go1Step')
+    os.system('python3 run.py stress run -scenario fetch.Fetch1Step --args=\'-u 100 -d 1m\'')
     time.sleep(10)
 
 
@@ -72,14 +74,14 @@ if __name__ == '__main__':
     slice_num = 1
     while slice_num <= 8:
         mem_total = slice_num * 512
-        block_cache = 0
-        while block_cache <= mem_total:
+        block_cache = mem_total
+        while block_cache >= 0:
             vertex_pool = mem_total - block_cache
             storage_cache = int(vertex_pool * 1.2)
             change_config(block_cache, storage_cache, vertex_pool)
             result_file.write(str(block_cache) + " " + str(storage_cache) + " " + str(vertex_pool) + "\n")
             start_bench()
-            read_output_file(Go1Step_output)
-            block_cache += int(mem_total / 8)
+            read_output_file(fetch1Step_output)
+            block_cache -= int(mem_total / 8)
         slice_num += 1
     result_file.close()
