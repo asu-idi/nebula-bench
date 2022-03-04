@@ -42,6 +42,7 @@ def start_bench():
 
 
 def read_output_file(output_file):
+    global query_times
     with open(output_file, 'r') as load_f:
         result = json.load(load_f)
         metricMap = result['metrics']['latency']
@@ -108,8 +109,8 @@ if __name__ == '__main__':
 
             read_output_file(fetch1Step_output)
             qps = query_times / (time_end - time_start)
-            result_file.write("qps: " + str(qps) + "\n")
-
+            result_file.write("qps: " + str(qps) + "\n\n")
+            result_file.flush()
             block_cache -= int(mem_total / 8)
         slice_num += 1
     result_file.close()
