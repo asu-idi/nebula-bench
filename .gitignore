@@ -32,3 +32,9 @@ scripts/nebula-importer
 
 dist
 build
+
+go/
+go1.16.6.linux-amd64.tar.gz
+gopath/
+research_output.txt
+

@@ -14,9 +14,6 @@ result_output = "research_output.txt"
 fetch1Step_output = "output/result_Fetch1Step.json"
 result_file = open(result_output, mode='w', encoding='utf-8')
 
-def clear_memory():
-    
-
 def init():
     os.system('ulimit -n 130000')
 
