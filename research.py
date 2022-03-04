@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import operator
 
 config_file = '/usr/local/nebula/etc/nebula-storaged.conf'
 rocksdb_block_cache_prefix = '--rocksdb_block_cache='
@@ -14,8 +15,23 @@ result_output = "research_output.txt"
 fetch1Step_output = "output/result_Fetch1Step.json"
 result_file = open(result_output, mode='w', encoding='utf-8')
 
+query_times = 0
+
 def init():
     os.system('ulimit -n 130000')
+
+def clear_memory():
+    os.system('sync')
+    time.sleep(2)
+    os.system('sudo sh -c "echo 1 > /proc/sys/vm/drop_caches"')
+
+    os.system('sync')
+    time.sleep(2)
+    os.system('sudo sh -c "echo 2 > /proc/sys/vm/drop_caches"')
+
+    os.system('sync')
+    time.sleep(2)
+    os.system('sudo sh -c "echo 3 > /proc/sys/vm/drop_caches"')
 
 
 def start_bench():
@@ -28,12 +44,20 @@ def start_bench():
 def read_output_file(output_file):
     with open(output_file, 'r') as load_f:
         result = json.load(load_f)
-        result_file.write(str(result['metrics']['latency']) + "\n")
+        metricMap = result['metrics']['latency']
+        metricMap = dict(sorted(metricMap.items(), key=operator.itemgetter(0)))
+        result_file.write("latency: " + str(metricMap) + "\n")
+        checkMap = result['metrics']['checks']
+        query_times = int(result['metrics']['checks']['passes'])
+        checkMap = dict(sorted(checkMap.items(), key=operator.itemgetter(0)))
+        result_file.write("check: " + str(checkMap) + "\n")
         result_file.flush()
 
 
 def change_config(rocksdb_block_cache, storage_cache_capacity, vertex_pool_capacity):
     os.system('/usr/local/nebula/scripts/nebula.service stop all')
+    time.sleep(5)
+    clear_memory()
     time.sleep(5)
     file = open(config_file, mode='r', encoding='utf-8')
     content = file.read()
@@ -77,8 +101,15 @@ if __name__ == '__main__':
             storage_cache = int(vertex_pool * 1.2)
             change_config(block_cache, storage_cache, vertex_pool)
             result_file.write(str(block_cache) + " " + str(storage_cache) + " " + str(vertex_pool) + "\n")
+            
+            time_start = time.time()
             start_bench()
+            time_end = time.time()
+
             read_output_file(fetch1Step_output)
+            qps = query_times / (time_end - time_start)
+            result_file.write("qps: " + str(qps) + "\n")
+
             block_cache -= int(mem_total / 8)
         slice_num += 1
     result_file.close()
