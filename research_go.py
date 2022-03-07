@@ -9,10 +9,11 @@ enable_storage_cache_prefix = '--enable_storage_cache='
 storage_cache_capacity_prefix = '--storage_cache_capacity='
 enable_vertex_pool_prefix = '--enable_vertex_pool='
 vertex_pool_capacity_prefix = '--vertex_pool_capacity='
+empty_key_pool_capacity_prefix = '--empty_key_pool_capacity='
 
 result_output = "research_output.txt"
 
-fetch1Step_output = "output/result_Fetch1Step.json"
+Go1Step_output = "output/result_Go1Step.json"
 result_file = open(result_output, mode='w', encoding='utf-8')
 
 query_times = 0
@@ -37,7 +38,7 @@ def clear_memory():
 def start_bench():
     os.system('/usr/local/nebula/scripts/nebula.service start all')
     time.sleep(5)
-    os.system('python3 run.py stress run -scenario fetch.Fetch1Step --args=\'-u 100 -d 1m\'')
+    os.system('python3 run.py stress run -scenario go.Go1Step')
     time.sleep(10)
 
 
@@ -55,7 +56,7 @@ def read_output_file(output_file):
         result_file.flush()
 
 
-def change_config(rocksdb_block_cache, storage_cache_capacity, vertex_pool_capacity):
+def change_config(rocksdb_block_cache, storage_cache_capacity, vertex_pool_capacity,empty_key_pool_capacity):
     os.system('/usr/local/nebula/scripts/nebula.service stop all')
     time.sleep(5)
     clear_memory()
@@ -83,6 +84,8 @@ def change_config(rocksdb_block_cache, storage_cache_capacity, vertex_pool_capac
                 arr[index] = enable_storage_cache_prefix + "false"
             else:
                 arr[index] = enable_storage_cache_prefix + "true"
+        elif arr[index].startswith(empty_key_pool_capacity_prefix):
+            arr[index] = empty_key_pool_capacity_prefix + str(empty_key_pool_capacity)
         if index != len(arr) - 1:
             file.write(arr[index] + "\n")
         else:
@@ -94,20 +97,21 @@ def change_config(rocksdb_block_cache, storage_cache_capacity, vertex_pool_capac
 if __name__ == '__main__':
     init()
     slice_num = 1
-    while slice_num <= 8:
-        mem_total = slice_num * 512
+    while slice_num <= 16:
+        mem_total = slice_num * 256
         block_cache = mem_total
         while block_cache >= 0:
-            vertex_pool = mem_total - block_cache
-            storage_cache = int(vertex_pool * 1.2)
-            change_config(block_cache, storage_cache, vertex_pool)
+            vertex_pool = int((mem_total - block_cache)*1.0)
+            empty_pool = 0
+            storage_cache = int((vertex_pool + empty_pool) * 1.3)
+            change_config(block_cache, storage_cache, vertex_pool, empty_pool)
             result_file.write(str(block_cache) + " " + str(storage_cache) + " " + str(vertex_pool) + "\n")
             
             time_start = time.time()
             start_bench()
             time_end = time.time()
 
-            read_output_file(fetch1Step_output)
+            read_output_file(Go1Step_output)
             qps = query_times / (time_end - time_start)
             result_file.write("qps: " + str(qps) + "\n\n")
             result_file.flush()
