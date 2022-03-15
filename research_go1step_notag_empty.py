@@ -104,13 +104,16 @@ if __name__ == '__main__':
         block_cache = mem_total
         while block_cache >= 0:
             cache_pool = int((mem_total - block_cache) * 1.0)
+            if cache_pool == 0:
+                block_cache -= int(mem_total / 8)
+                continue
             vertex_pool = cache_pool
             while vertex_pool >= 0:
                 empty_pool = cache_pool - vertex_pool
                 storage_cache = int((vertex_pool + empty_pool) * 1.3)
                 change_config(block_cache, storage_cache, vertex_pool, empty_pool)
                 result_file.write(
-                    str(block_cache) + " " + str(storage_cache) + " " + str(vertex_pool) + str(vertex_pool) + "\n")
+                    str(block_cache) + " " + str(storage_cache) + " " + str(vertex_pool) + " " + str(empty_pool) + "\n")
                 time_start = time.time()
                 start_bench()
                 time_end = time.time()
