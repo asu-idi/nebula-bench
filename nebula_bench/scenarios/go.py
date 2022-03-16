@@ -22,3 +22,8 @@ class Go2Step(BaseGoScenario):
 class Go3Step(BaseGoScenario):
     abstract = False
     nGQL = "GO 3 STEP FROM {} OVER KNOWS YIELD $$.Person.firstName"
+
+
+class GoEdge(BaseGoScenario):
+    abstract = False
+    nGQL = "GO 1 step FROM {} over KNOWS yield properties(edge)"
