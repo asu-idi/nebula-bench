@@ -10,6 +10,7 @@ storage_cache_capacity_prefix = '--storage_cache_capacity='
 enable_vertex_pool_prefix = '--enable_vertex_pool='
 vertex_pool_capacity_prefix = '--vertex_pool_capacity='
 empty_key_pool_capacity_prefix = '--empty_key_pool_capacity='
+enable_empty_key_pool_prefix = '--enable_empty_key_pool='
 
 result_output = "research_output.txt"
 
@@ -88,6 +89,11 @@ def change_config(rocksdb_block_cache, storage_cache_capacity, vertex_pool_capac
                 arr[index] = enable_storage_cache_prefix + "true"
         elif arr[index].startswith(empty_key_pool_capacity_prefix):
             arr[index] = empty_key_pool_capacity_prefix + str(empty_key_pool_capacity)
+        elif arr[index].startswith(enable_empty_key_pool_prefix):
+            if empty_key_pool_capacity == 0:
+                arr[index] = enable_empty_key_pool_prefix + "false"
+            else:
+                arr[index] = enable_empty_key_pool_prefix + "true"
         if index != len(arr) - 1:
             file.write(arr[index] + "\n")
         else:
@@ -104,9 +110,6 @@ if __name__ == '__main__':
         block_cache = mem_total
         while block_cache >= 0:
             cache_pool = int((mem_total - block_cache) * 1.0)
-            if cache_pool == 0:
-                block_cache -= int(mem_total / 8)
-                continue
             vertex_pool = cache_pool
             while vertex_pool >= 0:
                 empty_pool = cache_pool - vertex_pool
@@ -122,7 +125,10 @@ if __name__ == '__main__':
                 qps = query_times / (time_end - time_start)
                 result_file.write("qps: " + str(qps) + "\n\n")
                 result_file.flush()
-                vertex_pool -= int(cache_pool / 8)
+                if cache_pool > 0:
+                    vertex_pool -= int(cache_pool / 8)
+                else:
+                    break
             block_cache -= int(mem_total / 8)
         slice_num += 1
     result_file.close()
