@@ -104,31 +104,28 @@ def change_config(rocksdb_block_cache, storage_cache_capacity, vertex_pool_capac
 
 if __name__ == '__main__':
     init()
-    slice_num = 1
-    while slice_num <= 16:
-        mem_total = slice_num * 256
-        block_cache = mem_total
-        while block_cache >= 0:
-            cache_pool = int((mem_total - block_cache) * 1.0)
-            vertex_pool = cache_pool
-            while vertex_pool >= 0:
-                empty_pool = cache_pool - vertex_pool
-                storage_cache = int((vertex_pool + empty_pool) * 1.3)
-                change_config(block_cache, storage_cache, vertex_pool, empty_pool)
-                result_file.write(
-                    str(block_cache) + " " + str(storage_cache) + " " + str(vertex_pool) + " " + str(empty_pool) + "\n")
-                time_start = time.time()
-                start_bench()
-                time_end = time.time()
+    mem_total = 3072
+    block_cache = mem_total
+    while block_cache >= 0:
+        cache_pool = int((mem_total - block_cache) * 1.0)
+        vertex_pool = cache_pool
+        while vertex_pool >= 0:
+            empty_pool = cache_pool - vertex_pool
+            storage_cache = int((vertex_pool + empty_pool) * 1.3)
+            change_config(block_cache, storage_cache, vertex_pool, empty_pool)
+            result_file.write(
+                str(block_cache) + " " + str(storage_cache) + " " + str(vertex_pool) + " " + str(empty_pool) + "\n")
+            time_start = time.time()
+            start_bench()
+            time_end = time.time()
 
-                read_output_file(Go1Step_output)
-                qps = query_times / (time_end - time_start)
-                result_file.write("qps: " + str(qps) + "\n\n")
-                result_file.flush()
-                if cache_pool > 0:
-                    vertex_pool -= int(cache_pool / 8)
-                else:
-                    break
-            block_cache -= int(mem_total / 8)
-        slice_num += 1
-    result_file.close()
+            read_output_file(Go1Step_output)
+            qps = query_times / (time_end - time_start)
+            result_file.write("qps: " + str(qps) + "\n\n")
+            result_file.flush()
+            if cache_pool > 0:
+                vertex_pool -= int(cache_pool / 8)
+            else:
+                break
+        block_cache -= int(mem_total / 8)
+result_file.close()
